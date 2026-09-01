@@ -306,6 +306,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
     <p>There is more than one right plan. Any order that respects the dependencies and the lead times works.</p>
     <ul>
       <li><b>Four tasks have waiting time built in</b> &mdash; the HR Director takes a day, the presenters take two, the speakers take two to send files, and invitees need five days to reply. That waiting is why the invitation goes out on day 5 and not day 8.</li>
+      <li><b>Invite the presenters on day 2, not at the last possible moment.</b> Nothing forces you to wait, and the earlier they know, the longer they have to prepare their slides. Doing a task early is free; doing it late is not.</li>
       <li><b>Nothing new starts on days 7 to 9.</b> You are waiting for replies. Waiting time is not spare time.</li>
       <li><b>Days 12 and 13 are the genuine slack.</b> Spare time is not wasted time &mdash; it is what absorbs the thing that goes wrong.</li>
       <li><b>Catering is the trap.</b> Nothing waits on it, so it feels safe to leave late. But the supplier needs three days, so day 12 is the last possible day.</li>
@@ -336,7 +337,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 9</span>
+  <span class="mono">Session 3 &middot; build 10</span>
 </footer>
 </div>
 
@@ -365,9 +366,9 @@ const TASKS=[
  {id:2,n:"Get the induction agenda approved by HR",w:"Half a day to draft and submit",lead:0,dep:[0],u:1,i:1,day:1,
    turn:1,turnNote:"the HR Director needs 1 day to approve, so it comes back the next day",
    hint:"Submit it today. Approval comes back tomorrow, and four other tasks are stuck until it does."},
- {id:3,n:"Invite the GM, Head of HR and HR Advisor to present",w:"Half a day",lead:5,dep:[2],u:0,i:1,day:2,
-   leadNote:"presenters need 5 days' notice",by:10,
-   turn:2,turnNote:"give the presenters 2 days to reply before you rely on their answer"},
+ {id:3,n:"Invite the GM, Head of HR and HR Advisor to present",w:"Half a day",lead:0,dep:[2],u:0,i:1,day:2,
+   turn:2,turnNote:"give the presenters 2 days to reply",
+   hint:"Send this the moment the agenda is approved. The earlier the presenters know, the longer they have to prepare their slides."},
  {id:4,n:"Confirm the department reps for the company tour",w:"Half a day",lead:3,dep:[2],u:0,i:1,day:3,
    leadNote:"reps need 3 days' notice",by:12},
  {id:5,n:"Verify the 12 participant email addresses",w:"Half a day",lead:0,dep:[0],u:0,i:1,day:3,
@@ -578,7 +579,7 @@ function rows4(){
                           : "after tasks "+t.dep.slice(0,-1).join(", ")+" and "+t.dep[t.dep.length-1]);
     r.innerHTML='<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">'+dep+
       (t.lead?' &middot; <span class="lead">by day '+t.by+'</span>':'')+
-      (t.turn?' &middot; <span class="lead">+'+t.turn+' day'+(t.turn>1?'s':'')+' before the result is in</span>':'')+'</span></div>'+
+      (t.turn?' &middot; <span class="lead">allow '+t.turn+' day'+(t.turn>1?'s':'')+' for the reply</span>':'')+'</span></div>'+
       '<div><select aria-label="Day for '+t.n.replace(/"/g,'')+'">'+o+'</select></div>';
     const s=r.querySelector("select");
     if(S.day[t.id])s.value=String(S.day[t.id]);
