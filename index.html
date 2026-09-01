@@ -160,6 +160,8 @@ select{
   border-radius:2px;background:var(--panel);color:var(--ink)
 }
 select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+select option.ph{font-weight:700}
+select.empty{font-weight:700;color:var(--ink)}
 .toggles{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .tg{
   font-family:"IBM Plex Mono",monospace;font-size:.68rem;padding:5px 9px;border:1px solid var(--rule);
@@ -379,7 +381,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 18</span>
+  <span class="mono">Session 3 &middot; build 19</span>
 </footer>
 </div>
 
@@ -579,7 +581,7 @@ function rows3(){
   const w=document.getElementById("rows3"); w.innerHTML="";
   TASKS.forEach(t=>{
     const r=document.createElement("div"); r.className="trow s3"; r.dataset.id=t.id;
-    let opts='<option value="">Choose what it waits on…</option><option value="0">Nothing &mdash; it can start now</option>';
+    let opts='<option value="" class="ph">Choose what it waits on…</option><option value="0">Nothing &mdash; it can start now</option>';
     TASKS.filter(x=>x.id!==t.id).forEach(x=>{opts+='<option value="'+x.id+'">'+x.n+'</option>';});
     r.innerHTML=
       '<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">Takes: '+t.w+
@@ -593,7 +595,9 @@ function rows3(){
       '</div><span class="boxname"></span></div>';
     const sel=r.querySelector("select");
     if(S.dep[t.id]!==undefined)sel.value=String(S.dep[t.id]);
-    sel.onchange=()=>{S.dep[t.id]=+sel.value;save();};
+    const mark=()=>sel.classList.toggle("empty",sel.value==="");
+    mark();
+    sel.onchange=()=>{S.dep[t.id]=+sel.value;save();mark();c3();};
     r.querySelectorAll(".tg").forEach(b=>{
       const k=b.dataset.k, st=k==="u"?S.u:S.i;
       if(st[t.id])b.setAttribute("aria-pressed","true");
