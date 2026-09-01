@@ -94,6 +94,11 @@ header.top h1{font-size:clamp(1.5rem,4vw,2rem)}
 .lede{max-width:66ch;color:var(--ink-soft);margin:0 0 18px}
 .card{background:var(--panel);border:1px solid var(--rule);border-radius:3px;box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
 h2.sh{font-size:1.5rem;margin:0 0 6px}
+.tchip{
+  font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--on-accent);background:var(--accent);
+  border-radius:2px;padding:3px 9px;margin-left:12px;vertical-align:middle;white-space:nowrap
+}
 
 /* ---- agenda ---- */
 .agenda{border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:var(--panel)}
@@ -348,7 +353,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 14</span>
+  <span class="mono">Session 3 &middot; build 15</span>
 </footer>
 </div>
 
@@ -435,12 +440,12 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify({savedAt:Date.now(),
 function wipe(){try{localStorage.removeItem(KEY);sessionStorage.removeItem(KEY);}catch(e){}}
 
 /* ---------- rail ---------- */
-const LABELS=["The day","Record Tasks","Depends & priority","Schedule","Your plan"];
+const LABELS=[["The day",3],["Record Tasks",3],["Depends & priority",5],["Schedule",5],["Your plan",3]];
 function rail(){
   const r=document.getElementById("rail"); r.innerHTML="";
   LABELS.forEach((L,k)=>{
     const b=document.createElement("button");
-    b.innerHTML='<span class="n">STEP '+(k+1)+'</span>'+L;
+    b.innerHTML='<span class="n">STEP '+(k+1)+' &middot; '+L[1]+' MIN</span>'+L[0];
     if(S.step===k+1)b.setAttribute("aria-current","step");
     if(S.step>k+1)b.className="done";
     b.onclick=()=>go(k+1);
@@ -451,6 +456,12 @@ function go(n){
   S.step=n; save(); rail();
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
   document.getElementById("s"+n).classList.add("on");
+  const h=document.querySelector("#s"+n+" h2.sh");
+  if(h&&!h.querySelector(".tchip")){
+    const c=document.createElement("span");
+    c.className="tchip"; c.textContent=LABELS[n-1][1]+" min";
+    h.appendChild(c);
+  }
   if(n===3)rows3(); if(n===4){rows4();cal();} if(n===5){sum();smart();}
   window.scrollTo({top:0,behavior:"instant"});
 }
