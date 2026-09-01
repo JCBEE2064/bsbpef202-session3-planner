@@ -1,9 +1,9 @@
-﻿<!doctype html>
+?<!doctype html>
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Induction Planner â€” BSBPEF202 Session 3</title>
+<title>Induction Planner — BSBPEF202 Session 3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -392,7 +392,7 @@ const DISTRACTORS=[
 const ORDER=[1,101,2,3,102,4,5,103,6,7,104,8,9,10,105,11];
 const byId=id=>TASKS.find(t=>t.id===id);
 
-/* Progress is kept in this browser only â€” there is no server and no account,
+/* Progress is kept in this browser only — there is no server and no account,
    so one learner can never see another's answers. It survives closing the tab
    or the browser, so an accidental close does not lose the session's work.
    Anything older than the working day is discarded, so the tool does not open
@@ -493,7 +493,7 @@ function rows3(){
   const w=document.getElementById("rows3"); w.innerHTML="";
   TASKS.forEach(t=>{
     const r=document.createElement("div"); r.className="trow s3"; r.dataset.id=t.id;
-    let opts='<option value="">Choose what it waits onâ€¦</option><option value="0">Nothing &mdash; it can start now</option>';
+    let opts='<option value="">Choose what it waits on…</option><option value="0">Nothing &mdash; it can start now</option>';
     TASKS.filter(x=>x.id!==t.id).forEach(x=>{opts+='<option value="'+x.id+'">'+x.n+'</option>';});
     r.innerHTML=
       '<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">Takes: '+t.w+
@@ -543,14 +543,14 @@ document.getElementById("check3").onclick=()=>{
     if(t.dep.length>1){
       msg="<b>Waits on "+t.dep.length+" things:</b> "+t.depNote;
     }else{
-      msg="<b>Waits on:</b> "+(t.dep[0]===0?"nothing â€” it can start today":("task "+t.dep[0]+", "+byId(t.dep[0]).n));
+      msg="<b>Waits on:</b> "+(t.dep[0]===0?"nothing — it can start today":("task "+t.dep[0]+", "+byId(t.dep[0]).n));
     }
-    msg+=" &nbsp;Â·&nbsp; <b>Box:</b> "+boxOf(t.u,t.i)+" â€” "+
+    msg+=" &nbsp;·&nbsp; <b>Box:</b> "+boxOf(t.u,t.i)+" — "+
       (t.u ? "you can start it today and it cannot wait"
            : (t.dep[0]===0 ? "nothing blocks it, but nothing needs it yet either"
                            : "it is still waiting on task "+t.dep[0]+", so it is not urgent today"));
-    if(t.lead)msg+=" &nbsp;Â·&nbsp; <b>Lead time:</b> "+t.leadNote+", so it must be done by day "+t.by+".";
-    if(t.turn)msg+=" &nbsp;Â·&nbsp; <b>Turnaround:</b> "+t.turnNote+". Submit on day 1, approved on day 2.";
+    if(t.lead)msg+=" &nbsp;·&nbsp; <b>Lead time:</b> "+t.leadNote+", so it must be done by day "+t.by+".";
+    if(t.turn)msg+=" &nbsp;·&nbsp; <b>Turnaround:</b> "+t.turnNote+". Submit on day 1, approved on day 2.";
     f.innerHTML=msg; r.appendChild(f);
     S.dep[t.id]=t.dep[0]; S.u[t.id]=t.u; S.i[t.id]=t.i;
   });
@@ -564,7 +564,7 @@ function rows4(){
   const w=document.getElementById("rows4"); w.innerHTML="";
   TASKS.forEach(t=>{
     const r=document.createElement("div"); r.className="trow s4"; r.dataset.id=t.id;
-    let o='<option value="">Dayâ€¦</option>';
+    let o='<option value="">Day…</option>';
     for(let d=1;d<=15;d++)o+='<option value="'+d+'">Day '+d+'</option>';
     const dep = t.dep[0]===0 ? "starts on its own"
       : (t.dep.length===1 ? "after task "+t.dep[0]+": "+byId(t.dep[0]).n
@@ -660,7 +660,7 @@ const SM_C=["emailing the booking details to the Administration Team Leader",
             "confirming the checked list with the HR Advisor"];
 function smart(){
   const w=document.getElementById("smart");
-  const mk=(k,arr)=>{let o='<option value="">â€¦</option>';arr.forEach((v,j)=>{o+='<option value="'+j+'">'+v+'</option>';});
+  const mk=(k,arr)=>{let o='<option value="">…</option>';arr.forEach((v,j)=>{o+='<option value="'+j+'">'+v+'</option>';});
     return '<select data-k="'+k+'" aria-label="'+k+'">'+o+'</select>';};
   w.innerHTML='By '+mk("a",SM_A)+', I will '+mk("b",SM_B)+' and confirm it by '+mk("c",SM_C)+
     ', so that the induction invitation can go out on time with the correct venue.';
