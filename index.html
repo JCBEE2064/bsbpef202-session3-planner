@@ -305,7 +305,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
     <h3>One workable answer</h3>
     <p>There is more than one right plan. Any order that respects the dependencies and the lead times works.</p>
     <ul>
-      <li><b>Four tasks have waiting time built in</b> &mdash; the HR Director takes a day, the presenters take two, the speakers take two to send files, and invitees need five days to reply. That waiting is why the invitation goes out on day 5 and not day 8.</li>
+      <li><b>Four tasks have waiting time built in</b> &mdash; the HR Director takes a day to approve, the presenters take two to reply, they need five more to write their speech and slides, and invitees need five days to reply. That waiting is why the invitation goes out on day 5 and not day 8.</li>
       <li><b>Invite the presenters on day 2, not at the last possible moment.</b> Nothing forces you to wait, and the earlier they know, the longer they have to prepare their slides. Doing a task early is free; doing it late is not.</li>
       <li><b>Nothing new starts on days 7 to 9.</b> You are waiting for replies. Waiting time is not spare time.</li>
       <li><b>Days 12 and 13 are the genuine slack.</b> Spare time is not wasted time &mdash; it is what absorbs the thing that goes wrong.</li>
@@ -337,7 +337,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 10</span>
+  <span class="mono">Session 3 &middot; build 11</span>
 </footer>
 </div>
 
@@ -364,7 +364,8 @@ const TASKS=[
  {id:1,n:"Book Training Room A, with a projector and screen",w:"Half a day",lead:0,dep:[0],u:1,i:1,day:1,
    hint:"Nothing waits on this, but almost everything else does. It is the natural first task."},
  {id:2,n:"Get the induction agenda approved by HR",w:"Half a day to draft and submit",lead:0,dep:[0],u:1,i:1,day:1,
-   turn:1,turnNote:"the HR Director needs 1 day to approve, so it comes back the next day",
+   turn:1,turnShort:"allow 1 day for approval",
+   turnNote:"the HR Director needs 1 day to approve, so it comes back the next day",
    hint:"Submit it today. Approval comes back tomorrow, and four other tasks are stuck until it does."},
  {id:3,n:"Invite the GM, Head of HR and HR Advisor to present",w:"Half a day",lead:0,dep:[2],u:0,i:1,day:2,
    turn:2,turnNote:"give the presenters 2 days to reply",
@@ -379,7 +380,9 @@ const TASKS=[
    depNote:"task 1 for the venue, task 5 for the right email addresses, and task 6 for the programme people are being invited to. "+
            "Choosing any one of the three is a fair answer, but the invitation cannot go out until all three are done."},
  {id:8,n:"Collect the presentation files from each speaker",w:"Ongoing",lead:0,dep:[3],u:0,i:1,day:6,
-   turn:2,turnNote:"speakers need 2 days to send their files"},
+   turn:5,turnShort:"allow 5 days to prepare the speech and slides",
+   turnNote:"speakers need about 5 days to write their speech and build their slides",
+   hint:"Ask for the files when you invite them, not a week before the day."},
  {id:9,n:"Confirm who is coming, and the final head count",w:"Half a day",lead:0,dep:[7],u:0,i:1,day:10,
    hint:"You cannot count heads until people have had time to reply."},
  {id:10,n:"Book catering for the morning break and buffet lunch",w:"Half a day",lead:3,dep:[9],u:0,i:1,day:11,
@@ -579,7 +582,7 @@ function rows4(){
                           : "after tasks "+t.dep.slice(0,-1).join(", ")+" and "+t.dep[t.dep.length-1]);
     r.innerHTML='<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">'+dep+
       (t.lead?' &middot; <span class="lead">by day '+t.by+'</span>':'')+
-      (t.turn?' &middot; <span class="lead">allow '+t.turn+' day'+(t.turn>1?'s':'')+' for the reply</span>':'')+'</span></div>'+
+      (t.turn?' &middot; <span class="lead">'+(t.turnShort||('allow '+t.turn+' day'+(t.turn>1?'s':'')+' for the reply'))+'</span>':'')+'</span></div>'+
       '<div><select aria-label="Day for '+t.n.replace(/"/g,'')+'">'+o+'</select></div>';
     const s=r.querySelector("select");
     if(S.day[t.id])s.value=String(S.day[t.id]);
