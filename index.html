@@ -83,6 +83,11 @@ header.top h1{font-size:clamp(1.5rem,4vw,2rem)}
 }
 .rulebox b{font-weight:600}
 
+.restored{
+  display:none;margin:0 0 18px;padding:11px 15px;font-size:.87rem;
+  background:var(--ok-wash);border-left:3px solid var(--ok);border-radius:2px
+}
+
 /* ---- screens ---- */
 .screen{display:none}
 .screen.on{display:block}
@@ -217,6 +222,8 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
   <p class="today"><span class="pin">Today is <b>day 1</b></span><span class="pin">The induction runs on <b>day 15</b></span><span class="pin">You have <b>14 working days</b> to get ready</span><button class="pin resetpin" id="restartTop" type="button">Reset</button></p>
 </header>
 
+<p class="restored" id="restored" role="status"></p>
+
 <!-- ============ 1 ============ -->
 <section class="screen" id="s1">
   <h2 class="sh">The induction day</h2>
@@ -326,7 +333,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 </section>
 
 <footer class="foot">
-  <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser and clear when you close the tab.</span>
+  <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
   <span class="mono">Session 3 &middot; v1</span>
 </footer>
 </div>
@@ -381,17 +388,27 @@ const DISTRACTORS=[
 const ORDER=[1,101,2,3,102,4,5,103,6,7,104,8,9,10,105,11];
 const byId=id=>TASKS.find(t=>t.id===id);
 
-/* Progress is held in sessionStorage, not localStorage: it survives a refresh
-   or a stray click during the session, and clears itself when the tab closes,
-   so the next learner to open the link starts clean. It never leaves the
-   browser — there is no server and no account. */
+/* Progress is kept in this browser only — there is no server and no account,
+   so one learner can never see another's answers. It survives closing the tab
+   or the browser, so an accidental close does not lose the session's work.
+   Anything older than the working day is discarded, so the tool does not open
+   weeks later still showing a stale plan. */
 const KEY="bsbpef202s3";
+const MAXAGE=8*60*60*1000;   // 8 hours: the working day, not longer
 function blank(){return {step:1,picked:[],dep:{},u:{},i:{},day:{},smart:{a:"",b:"",c:""}};}
-let S=blank();
-try{const raw=sessionStorage.getItem(KEY);if(raw)S=Object.assign(S,JSON.parse(raw));}catch(e){}
-try{localStorage.removeItem(KEY);}catch(e){}   // clear anything left by an earlier version
-function save(){try{sessionStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
-function wipe(){try{sessionStorage.removeItem(KEY);}catch(e){}}
+let S=blank(), restored=false;
+try{
+  const raw=localStorage.getItem(KEY);
+  if(raw){
+    const box=JSON.parse(raw);
+    if(box&&box.savedAt&&box.data&&(Date.now()-box.savedAt)<MAXAGE){
+      S=Object.assign(S,box.data); restored=true;
+    }else{ localStorage.removeItem(KEY); }
+  }
+}catch(e){}
+try{sessionStorage.removeItem(KEY);}catch(e){}   // left by an earlier version
+function save(){try{localStorage.setItem(KEY,JSON.stringify({savedAt:Date.now(),data:S}));}catch(e){}}
+function wipe(){try{localStorage.removeItem(KEY);sessionStorage.removeItem(KEY);}catch(e){}}
 
 /* ---------- rail ---------- */
 const LABELS=["The day","Choose tasks","Depends & priority","The calendar","Your plan"];
@@ -647,6 +664,12 @@ function restart(){ S=blank(); wipe(); location.reload(); }
 document.getElementById("restart").onclick=restart;
 document.getElementById("restartTop").onclick=restart;
 
+if(restored&&S.step>1){
+  const n=document.getElementById("restored");
+  n.innerHTML='Welcome back. Your earlier answers have been restored, and you are on step '+S.step+
+    '. If you want to start from scratch, use <b>Reset</b> above.';
+  n.style.display="block";
+}
 rail(); go(S.step);
 </script>
 </body>
