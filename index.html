@@ -160,7 +160,7 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .cal .chip{background:var(--accent-wash);border-left:2px solid var(--accent);padding:2px 6px;border-radius:1px}
 .cal .cd.ind{background:var(--sand-wash)}
 .cal .cd.ind .dt{font-weight:600}
-.cal .cd.clash .chip{background:var(--bad-wash);border-left-color:var(--bad)}
+.cal .chip.bad{background:var(--bad-wash);border-left-color:var(--bad)}
 .calhead{padding:8px 10px;background:var(--sand-wash);border-bottom:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
 
 /* ---- alerts ---- */
@@ -343,7 +343,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 12</span>
+  <span class="mono">Session 3 &middot; build 13</span>
 </footer>
 </div>
 
@@ -604,8 +604,8 @@ function cal(){
     const row=document.createElement("div");
     row.className="cd"+(d===15?" ind":"");
     const here=TASKS.filter(t=>S.day[t.id]===d);
-    if(here.some(t=>bad.indexOf(t.id)>-1))row.classList.add("clash");
-    let chips=here.map(t=>'<span class="chip">'+t.n+'</span>').join("");
+    // mark the task that is out of order, not every task sharing its day
+    let chips=here.map(t=>'<span class="chip'+(bad.indexOf(t.id)>-1?' bad':'')+'">'+t.n+'</span>').join("");
     if(d===15)chips='<span>The induction runs</span>'+chips;
     row.innerHTML='<span class="dn">Day '+d+'</span><span class="dt">'+chips+'</span>';
     c.appendChild(row);
