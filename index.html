@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Induction Planner — BSBPEF202 Session 3</title>
+<title>Induction Planner â€” BSBPEF202 Session 3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -277,7 +277,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
       <li><b>Task 1, the room.</b> Nothing waits on it, but almost everything else does. Book it first.</li>
       <li><b>Task 5 is the interesting one.</b> Nothing blocks it, so you <em>could</em> do it today &mdash; but nothing needs it until the invitation on day 8. Unblocked is not the same as urgent.</li>
       <li><b>The agenda comes before the presenters.</b> People should be invited to an approved programme, not a draft.</li>
-      <li><b>Task 7 waits on three things</b> &mdash; the room, the finalised agenda and the checked email list. Any of those is a fair answer.</li>
+      <li><b>Task 7 is the only one that waits on three things</b> &mdash; task 1 the room, task 5 the email addresses, task 6 the finalised agenda. An invitation needs a venue, the right addresses and a programme. Naming any one of the three is a fair answer, but it cannot go out until all three are done.</li>
       <li><b>Nothing lands in Delegate or Drop.</b> That was step 2: the tasks you did not tick were the Drop box.</li>
       <li>Watch the <span class="mono" style="color:var(--warn)">lead time</span> notes. That is time <em>somebody else</em> needs, and it is not the same as how long the task takes you.</li>
     </ul>
@@ -335,7 +335,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 5</span>
+  <span class="mono">Session 3 &middot; build 6</span>
 </footer>
 </div>
 
@@ -371,7 +371,9 @@ const TASKS=[
  {id:5,n:"Verify the 12 participant email addresses",w:"Half a day",lead:0,dep:[0],u:0,i:1,day:5,
    hint:"You could start this today, but nothing needs it until the invitation goes out."},
  {id:6,n:"Finalise the agenda with confirmed speaker names",w:"Half a day",lead:0,dep:[3],u:0,i:1,day:6},
- {id:7,n:"Draft and send the participant email invitation",w:"One day",lead:0,dep:[1,5,6],u:0,i:1,day:8},
+ {id:7,n:"Draft and send the participant email invitation",w:"One day",lead:0,dep:[1,5,6],u:0,i:1,day:8,
+   depNote:"task 1 for the venue, task 5 for the right email addresses, and task 6 for the programme people are being invited to. "+
+           "Choosing any one of the three is a fair answer, but the invitation cannot go out until all three are done."},
  {id:8,n:"Collect the presentation files from each speaker",w:"Ongoing",lead:0,dep:[3],u:0,i:1,day:9},
  {id:9,n:"Confirm who is coming, and the final head count",w:"Half a day",lead:0,dep:[7],u:0,i:1,day:10},
  {id:10,n:"Book catering for the morning break and buffet lunch",w:"Half a day",lead:3,dep:[9],u:0,i:1,day:11,
@@ -390,7 +392,7 @@ const DISTRACTORS=[
 const ORDER=[1,101,2,3,102,4,5,103,6,7,104,8,9,10,105,11];
 const byId=id=>TASKS.find(t=>t.id===id);
 
-/* Progress is kept in this browser only — there is no server and no account,
+/* Progress is kept in this browser only â€” there is no server and no account,
    so one learner can never see another's answers. It survives closing the tab
    or the browser, so an accidental close does not lose the session's work.
    Anything older than the working day is discarded, so the tool does not open
@@ -491,7 +493,7 @@ function rows3(){
   const w=document.getElementById("rows3"); w.innerHTML="";
   TASKS.forEach(t=>{
     const r=document.createElement("div"); r.className="trow s3"; r.dataset.id=t.id;
-    let opts='<option value="">Choose what it waits on…</option><option value="0">Nothing &mdash; it can start now</option>';
+    let opts='<option value="">Choose what it waits onâ€¦</option><option value="0">Nothing &mdash; it can start now</option>';
     TASKS.filter(x=>x.id!==t.id).forEach(x=>{opts+='<option value="'+x.id+'">'+x.n+'</option>';});
     r.innerHTML=
       '<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">Takes: '+t.w+
@@ -537,15 +539,18 @@ document.getElementById("check3").onclick=()=>{
     r.classList.add(depOK&&boxOK?"right":"wrong");
     let old=r.querySelector(".fb"); if(old)old.remove();
     const f=document.createElement("div"); f.className="fb";
-    const depName=t.dep[0]===0?"nothing — it can start today":("task "+t.dep[0]+", "+byId(t.dep[0]).n);
-    let msg="<b>Waits on:</b> "+depName;
-    if(t.dep.length>1)msg+=" <i>(it actually waits on "+t.dep.length+" things — any of them is a fair answer)</i>";
-    msg+=" &nbsp;·&nbsp; <b>Box:</b> "+boxOf(t.u,t.i)+" — "+
+    let msg;
+    if(t.dep.length>1){
+      msg="<b>Waits on "+t.dep.length+" things:</b> "+t.depNote;
+    }else{
+      msg="<b>Waits on:</b> "+(t.dep[0]===0?"nothing â€” it can start today":("task "+t.dep[0]+", "+byId(t.dep[0]).n));
+    }
+    msg+=" &nbsp;Â·&nbsp; <b>Box:</b> "+boxOf(t.u,t.i)+" â€” "+
       (t.u ? "you can start it today and it cannot wait"
            : (t.dep[0]===0 ? "nothing blocks it, but nothing needs it yet either"
                            : "it is still waiting on task "+t.dep[0]+", so it is not urgent today"));
-    if(t.lead)msg+=" &nbsp;·&nbsp; <b>Lead time:</b> "+t.leadNote+", so it must be done by day "+t.by+".";
-    if(t.turn)msg+=" &nbsp;·&nbsp; <b>Turnaround:</b> "+t.turnNote+". Submit on day 1, approved on day 2.";
+    if(t.lead)msg+=" &nbsp;Â·&nbsp; <b>Lead time:</b> "+t.leadNote+", so it must be done by day "+t.by+".";
+    if(t.turn)msg+=" &nbsp;Â·&nbsp; <b>Turnaround:</b> "+t.turnNote+". Submit on day 1, approved on day 2.";
     f.innerHTML=msg; r.appendChild(f);
     S.dep[t.id]=t.dep[0]; S.u[t.id]=t.u; S.i[t.id]=t.i;
   });
@@ -559,9 +564,11 @@ function rows4(){
   const w=document.getElementById("rows4"); w.innerHTML="";
   TASKS.forEach(t=>{
     const r=document.createElement("div"); r.className="trow s4"; r.dataset.id=t.id;
-    let o='<option value="">Day…</option>';
+    let o='<option value="">Dayâ€¦</option>';
     for(let d=1;d<=15;d++)o+='<option value="'+d+'">Day '+d+'</option>';
-    const dep=t.dep[0]===0?"starts on its own":"after task "+t.dep[0]+": "+byId(t.dep[0]).n;
+    const dep = t.dep[0]===0 ? "starts on its own"
+      : (t.dep.length===1 ? "after task "+t.dep[0]+": "+byId(t.dep[0]).n
+                          : "after tasks "+t.dep.slice(0,-1).join(", ")+" and "+t.dep[t.dep.length-1]);
     r.innerHTML='<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">'+dep+
       (t.lead?' &middot; <span class="lead">by day '+t.by+'</span>':'')+
       (t.turn?' &middot; <span class="lead">+'+t.turn+' day to come back</span>':'')+'</span></div>'+
@@ -653,7 +660,7 @@ const SM_C=["emailing the booking details to the Administration Team Leader",
             "confirming the checked list with the HR Advisor"];
 function smart(){
   const w=document.getElementById("smart");
-  const mk=(k,arr)=>{let o='<option value="">…</option>';arr.forEach((v,j)=>{o+='<option value="'+j+'">'+v+'</option>';});
+  const mk=(k,arr)=>{let o='<option value="">â€¦</option>';arr.forEach((v,j)=>{o+='<option value="'+j+'">'+v+'</option>';});
     return '<select data-k="'+k+'" aria-label="'+k+'">'+o+'</select>';};
   w.innerHTML='By '+mk("a",SM_A)+', I will '+mk("b",SM_B)+' and confirm it by '+mk("c",SM_C)+
     ', so that the induction invitation can go out on time with the correct venue.';
