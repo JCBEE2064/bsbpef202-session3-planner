@@ -161,6 +161,11 @@ select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .cal .cd.ind{background:var(--sand-wash)}
 .cal .cd.ind .dt{font-weight:600}
 .cal .chip.bad{background:var(--bad-wash);border-left-color:var(--bad)}
+.cal .chip .cn{
+  font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;
+  color:var(--ink-soft);margin-right:6px
+}
+.cal .chip.bad .cn{color:var(--bad)}
 .calhead{padding:8px 10px;background:var(--sand-wash);border-bottom:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
 
 /* ---- alerts ---- */
@@ -343,7 +348,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 13</span>
+  <span class="mono">Session 3 &middot; build 14</span>
 </footer>
 </div>
 
@@ -605,7 +610,7 @@ function cal(){
     row.className="cd"+(d===15?" ind":"");
     const here=TASKS.filter(t=>S.day[t.id]===d);
     // mark the task that is out of order, not every task sharing its day
-    let chips=here.map(t=>'<span class="chip'+(bad.indexOf(t.id)>-1?' bad':'')+'">'+t.n+'</span>').join("");
+    let chips=here.map(t=>'<span class="chip'+(bad.indexOf(t.id)>-1?' bad':'')+'"><span class="cn">'+t.id+'</span>'+t.n+'</span>').join("");
     if(d===15)chips='<span>The induction runs</span>'+chips;
     row.innerHTML='<span class="dn">Day '+d+'</span><span class="dt">'+chips+'</span>';
     c.appendChild(row);
