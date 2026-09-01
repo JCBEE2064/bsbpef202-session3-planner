@@ -305,7 +305,8 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
     <h3>One workable answer</h3>
     <p>There is more than one right plan. Any order that respects the dependencies and the lead times works.</p>
     <ul>
-      <li><b>Days 7, 12 and 13 are empty on purpose.</b> Spare time is not wasted time &mdash; it is what absorbs the thing that goes wrong.</li>
+      <li><b>Tasks 1 and 2 both start on day 1.</b> You submit the agenda on day 1 and it comes back approved on day 2, so nothing new needs to start that day. Waiting time is not spare time.</li>
+      <li><b>Days 7, 12 and 13 are genuinely empty.</b> Spare time is not wasted time &mdash; it is what absorbs the thing that goes wrong.</li>
       <li><b>Catering is the trap.</b> Nothing waits on it, so it feels safe to leave late. But the supplier needs three days, so day 12 is the last possible day.</li>
       <li><b>Focus &mdash; Pomodoro.</b> When you block 9:00 to 9:30 on day 1 for the room, that block is one 25-minute round. One task, timer on, email closed.</li>
     </ul>
@@ -360,8 +361,9 @@ const AGENDA=[
 const TASKS=[
  {id:1,n:"Book Training Room A, with a projector and screen",w:"Half a day",lead:0,dep:[0],u:1,i:1,day:1,
    hint:"Nothing waits on this, but almost everything else does. It is the natural first task."},
- {id:2,n:"Get the induction agenda approved by HR",w:"One day",lead:0,dep:[0],u:1,i:1,day:2,
-   hint:"You can start this today, and four other tasks are stuck until it is done."},
+ {id:2,n:"Get the induction agenda approved by HR",w:"Half a day to draft and submit",lead:0,dep:[0],u:1,i:1,day:1,
+   turn:1,turnNote:"the HR Director needs 1 day to approve, so it comes back the next day",
+   hint:"Submit it today. Approval comes back tomorrow, and four other tasks are stuck until it does."},
  {id:3,n:"Invite the GM, Head of HR and HR Advisor to present",w:"Half a day",lead:5,dep:[2],u:0,i:1,day:3,
    leadNote:"presenters need 5 days' notice",by:10},
  {id:4,n:"Confirm the department reps for the company tour",w:"Half a day",lead:3,dep:[2],u:0,i:1,day:4,
@@ -493,7 +495,8 @@ function rows3(){
     TASKS.filter(x=>x.id!==t.id).forEach(x=>{opts+='<option value="'+x.id+'">'+x.n+'</option>';});
     r.innerHTML=
       '<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">Takes: '+t.w+
-      (t.lead?' &middot; <span class="lead">lead time: '+t.leadNote+'</span>':'')+'</span>'+
+      (t.lead?' &middot; <span class="lead">lead time: '+t.leadNote+'</span>':'')+
+      (t.turn?' &middot; <span class="lead">turnaround: '+t.turnNote+'</span>':'')+'</span>'+
       (t.hint?'<span class="hint">'+t.hint+'</span>':'')+'</div>'+
       '<div><select aria-label="What it waits on">'+opts+'</select></div>'+
       '<div><div class="toggles">'+
@@ -542,6 +545,7 @@ document.getElementById("check3").onclick=()=>{
            : (t.dep[0]===0 ? "nothing blocks it, but nothing needs it yet either"
                            : "it is still waiting on task "+t.dep[0]+", so it is not urgent today"));
     if(t.lead)msg+=" &nbsp;·&nbsp; <b>Lead time:</b> "+t.leadNote+", so it must be done by day "+t.by+".";
+    if(t.turn)msg+=" &nbsp;·&nbsp; <b>Turnaround:</b> "+t.turnNote+". Submit on day 1, approved on day 2.";
     f.innerHTML=msg; r.appendChild(f);
     S.dep[t.id]=t.dep[0]; S.u[t.id]=t.u; S.i[t.id]=t.i;
   });
@@ -559,7 +563,8 @@ function rows4(){
     for(let d=1;d<=15;d++)o+='<option value="'+d+'">Day '+d+'</option>';
     const dep=t.dep[0]===0?"starts on its own":"after task "+t.dep[0]+": "+byId(t.dep[0]).n;
     r.innerHTML='<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">'+dep+
-      (t.lead?' &middot; <span class="lead">by day '+t.by+'</span>':'')+'</span></div>'+
+      (t.lead?' &middot; <span class="lead">by day '+t.by+'</span>':'')+
+      (t.turn?' &middot; <span class="lead">+'+t.turn+' day to come back</span>':'')+'</span></div>'+
       '<div><select aria-label="Day for '+t.n.replace(/"/g,'')+'">'+o+'</select></div>';
     const s=r.querySelector("select");
     if(S.day[t.id])s.value=String(S.day[t.id]);
@@ -588,8 +593,13 @@ function problems(){
     const d=S.day[t.id]; if(!d)return;
     if(d===15)p.push({id:t.id,msg:"<b>"+t.n+"</b> is on day 15. Nothing belongs there except the induction itself."});
     t.dep.filter(x=>x>0).forEach(dx=>{
-      const dd=S.day[dx]; if(!dd)return;
-      if(d<dd)p.push({id:t.id,msg:"<b>"+t.n+"</b> is on day "+d+", but it waits on <b>"+byId(dx).n+"</b> which is on day "+dd+"."});
+      const parent=byId(dx), dd=S.day[dx]; if(!dd)return;
+      const ready=dd+(parent.turn||0);          // when the parent's result is actually in your hands
+      if(d<ready){
+        p.push({id:t.id,msg:parent.turn
+          ? "<b>"+t.n+"</b> is on day "+d+", but it waits on <b>"+parent.n+"</b>, submitted on day "+dd+" and not back until day "+ready+"."
+          : "<b>"+t.n+"</b> is on day "+d+", but it waits on <b>"+parent.n+"</b> which is on day "+dd+"."});
+      }
     });
     if(t.by&&d>t.by)p.push({id:t.id,msg:"<b>"+t.n+"</b> is on day "+d+", too late. The "+t.leadNote+", so it must be done by day "+t.by+"."});
   });
