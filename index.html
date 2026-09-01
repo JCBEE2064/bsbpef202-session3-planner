@@ -335,7 +335,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 6</span>
+  <span class="mono">Session 3 &middot; build 7</span>
 </footer>
 </div>
 
@@ -415,7 +415,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify({savedAt:Date.now(),
 function wipe(){try{localStorage.removeItem(KEY);sessionStorage.removeItem(KEY);}catch(e){}}
 
 /* ---------- rail ---------- */
-const LABELS=["The day","Choose tasks","Depends & priority","The calendar","Your plan"];
+const LABELS=["The day","Record Tasks","Depends & priority","Schedule","Your plan"];
 function rail(){
   const r=document.getElementById("rail"); r.innerHTML="";
   LABELS.forEach((L,k)=>{
