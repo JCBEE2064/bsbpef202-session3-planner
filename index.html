@@ -71,6 +71,26 @@ header.top h1{font-size:clamp(1.5rem,4vw,2rem)}
 .today .resetpin{cursor:pointer;margin-left:auto;font-weight:600;color:var(--accent);font-family:"IBM Plex Mono",monospace}
 .today .resetpin:hover{border-color:var(--accent)}
 .today .resetpin:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.timerbar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.tlabel{
+  font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-soft)
+}
+.tclock{
+  font-family:"IBM Plex Mono",monospace;font-size:1.35rem;font-weight:600;
+  font-variant-numeric:tabular-nums;color:var(--ink);min-width:86px;
+  background:var(--panel);border:1px solid var(--rule);border-radius:2px;
+  padding:2px 12px;text-align:center
+}
+.tclock.warn{color:var(--warn);border-color:var(--warn);background:var(--warn-wash)}
+.tclock.over{color:var(--bad);border-color:var(--bad);background:var(--bad-wash)}
+.tbtn{
+  font-family:"IBM Plex Mono",monospace;font-size:.7rem;font-weight:600;letter-spacing:.05em;
+  padding:7px 14px;border-radius:2px;cursor:pointer;
+  background:var(--accent);color:var(--on-accent);border:1px solid var(--accent)
+}
+.tbtn.ghost{background:transparent;color:var(--ink-soft);border-color:var(--rule)}
+.tbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .num{
   font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:600;color:var(--ink-soft);
   background:var(--sand-wash);border:1px solid var(--rule);border-radius:2px;
@@ -215,7 +235,7 @@ table.sum td.d{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabula
 footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);font-size:.78rem;color:var(--ink-soft);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 
 @media print{
-  .rail,.bar,footer.foot,.screen:not(.on){display:none!important}
+  .rail,.bar,.timerbar,footer.foot,.screen:not(.on){display:none!important}
   body{background:#fff}
   .card{box-shadow:none;break-inside:avoid}
 }
@@ -230,6 +250,12 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
   <h1>Induction Planner</h1>
   <nav class="rail" id="rail" aria-label="Steps"></nav>
   <p class="today"><span class="pin">Today is <b>day 1</b></span><span class="pin">The induction runs on <b>day 15</b></span><span class="pin">You have <b>14 working days</b> to get ready</span><button class="pin resetpin" id="restartTop" type="button">Reset</button></p>
+  <div class="timerbar">
+    <span class="tlabel" id="tlabel">Step 1 timer</span>
+    <span class="tclock" id="tclock">03:00</span>
+    <button class="tbtn" id="tstart" type="button">Start</button>
+    <button class="tbtn ghost" id="treset" type="button">Reset timer</button>
+  </div>
 </header>
 
 <p class="restored" id="restored" role="status"></p>
@@ -353,7 +379,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 15</span>
+  <span class="mono">Session 3 &middot; build 16</span>
 </footer>
 </div>
 
@@ -452,10 +478,39 @@ function rail(){
     r.appendChild(b);
   });
 }
+/* ---------- step timer ---------- */
+/* Counts down the minutes allowed for the step, then keeps counting up in red
+   so you can see how far over you are. Manual start, as asked. */
+let tmStep=0, tmLeft=0, tmRunning=false, tmId=null;
+function tmFmt(s){
+  const neg=s<0, a=Math.abs(s), m=Math.floor(a/60), x=a%60;
+  return (neg?"+":"")+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0");
+}
+function tmPaint(){
+  const c=document.getElementById("tclock");
+  c.textContent=tmFmt(tmLeft);
+  c.classList.toggle("warn", tmLeft<=30&&tmLeft>0);
+  c.classList.toggle("over", tmLeft<=0);
+  document.getElementById("tstart").textContent=tmRunning?"Pause":"Start";
+}
+function tmPause(){ tmRunning=false; if(tmId){clearInterval(tmId);tmId=null;} tmPaint(); }
+function tmSet(n){
+  tmPause(); tmStep=n; tmLeft=LABELS[n-1][1]*60;
+  document.getElementById("tlabel").textContent="Step "+n+" timer";
+  tmPaint();
+}
+function tmToggle(){
+  if(tmRunning){ tmPause(); return; }
+  tmRunning=true; tmId=setInterval(()=>{ tmLeft--; tmPaint(); },1000); tmPaint();
+}
+document.getElementById("tstart").onclick=tmToggle;
+document.getElementById("treset").onclick=()=>tmSet(tmStep||1);
+
 function go(n){
   S.step=n; save(); rail();
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
   document.getElementById("s"+n).classList.add("on");
+  if(n!==tmStep)tmSet(n);
   const h=document.querySelector("#s"+n+" h2.sh");
   if(h&&!h.querySelector(".tchip")){
     const c=document.createElement("span");
