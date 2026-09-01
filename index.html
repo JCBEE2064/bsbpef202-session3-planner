@@ -61,6 +61,25 @@ header.top h1{font-size:clamp(1.5rem,4vw,2rem)}
 .rail button.done{border-color:var(--ok);color:var(--ink)}
 .rail button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
+.today{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
+.today .pin{
+  font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.04em;
+  background:var(--sand-wash);border:1px solid var(--rule);border-radius:2px;
+  padding:5px 10px;color:var(--ink-soft)
+}
+.today .pin b{color:var(--ink)}
+.num{
+  font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:600;color:var(--ink-soft);
+  background:var(--sand-wash);border:1px solid var(--rule);border-radius:2px;
+  padding:1px 6px;margin-right:8px;flex:none
+}
+.hint{display:block;font-size:.78rem;color:var(--accent);margin-top:4px;font-style:italic}
+.rulebox{
+  background:var(--accent-wash);border-left:3px solid var(--accent);border-radius:2px;
+  padding:12px 15px;margin:0 0 16px;font-size:.9rem
+}
+.rulebox b{font-weight:600}
+
 /* ---- screens ---- */
 .screen{display:none}
 .screen.on{display:block}
@@ -192,6 +211,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
   <p class="kicker">BSBPEF202 Plan and apply time management &middot; Session 3</p>
   <h1>Induction Planner</h1>
   <nav class="rail" id="rail" aria-label="Steps"></nav>
+  <p class="today"><span class="pin">Today is <b>day 1</b></span><span class="pin">The induction runs on <b>day 15</b></span><span class="pin">You have <b>14 working days</b> to get ready</span></p>
 </header>
 
 <!-- ============ 1 ============ -->
@@ -228,7 +248,12 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 <!-- ============ 3 ============ -->
 <section class="screen" id="s3">
   <h2 class="sh">What does each task wait on, and how urgent is it?</h2>
-  <p class="lede">You are standing on <b>day 1</b>. Pick what each task must wait for, then decide whether it is urgent and whether it is important. The matrix box fills in by itself.</p>
+  <p class="lede">Pick what each task must wait for, then decide whether it is urgent and whether it is important. The matrix box fills in by itself.</p>
+  <div class="rulebox">
+    <b>You are standing on day 1. The induction is on day 15.</b><br>
+    <b>Urgent</b> means you can start it today and it cannot wait. So a task that is still waiting on another task is <b>not urgent yet</b> &mdash; it belongs in <b>Schedule</b>.<br>
+    <b>Important</b> means something breaks if it is late.
+  </div>
   <p class="kicker" style="color:var(--accent)">Technique &middot; Prioritise &mdash; the Eisenhower Matrix</p>
   <div id="rows3"></div>
   <div class="bar">
@@ -236,12 +261,14 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
     <span class="count" id="count3"></span>
   </div>
   <div class="reveal" id="rev3">
-    <h3>Why these dependencies</h3>
+    <h3>Only two things can start today</h3>
+    <p>Tasks <b>1</b> and <b>2</b> are the only ones in <b>Do now</b>. Everything else is waiting on something, so it goes in <b>Schedule</b>. That is the whole lesson of this step: <b>priority follows dependency</b>.</p>
     <ul>
+      <li><b>Task 1, the room.</b> Nothing waits on it, but almost everything else does. Book it first.</li>
+      <li><b>Task 5 is the interesting one.</b> Nothing blocks it, so you <em>could</em> do it today &mdash; but nothing needs it until the invitation on day 8. Unblocked is not the same as urgent.</li>
       <li><b>The agenda comes before the presenters.</b> People should be invited to an approved programme, not a draft.</li>
-      <li><b>The presenters come before the final agenda.</b> You cannot print names you have not confirmed.</li>
-      <li><b>The invitation waits on three things</b> &mdash; the room, the finalised agenda and the checked email list. Any of those is a fair answer.</li>
-      <li><b>Nothing lands in Delegate or Drop.</b> That is what step 2 was: the tasks you dropped were the Drop box.</li>
+      <li><b>Task 7 waits on three things</b> &mdash; the room, the finalised agenda and the checked email list. Any of those is a fair answer.</li>
+      <li><b>Nothing lands in Delegate or Drop.</b> That was step 2: the tasks you did not tick were the Drop box.</li>
       <li>Watch the <span class="mono" style="color:var(--warn)">lead time</span> notes. That is time <em>somebody else</em> needs, and it is not the same as how long the task takes you.</li>
     </ul>
     <div class="bar"><button class="act" data-go="4">Next: put them on days</button></div>
@@ -318,21 +345,26 @@ const AGENDA=[
 ];
 
 // id, name, work, lead(days somebody else needs), deps(acceptable), urgent, important, modelDay, leadNote, deadlineDay
+// Urgent = you can start it now AND it cannot wait. A task blocked by another
+// task is not urgent yet, so it belongs in Schedule.
 const TASKS=[
- {id:1,n:"Book Training Room A, with a projector and screen",w:"Half a day",lead:0,dep:[0],u:1,i:1,day:1},
- {id:2,n:"Get the induction agenda approved by HR",w:"One day",lead:0,dep:[0],u:1,i:1,day:2},
- {id:3,n:"Invite the GM, Head of HR and HR Advisor to present",w:"Half a day",lead:5,dep:[2],u:1,i:1,day:3,
+ {id:1,n:"Book Training Room A, with a projector and screen",w:"Half a day",lead:0,dep:[0],u:1,i:1,day:1,
+   hint:"Nothing waits on this, but almost everything else does. It is the natural first task."},
+ {id:2,n:"Get the induction agenda approved by HR",w:"One day",lead:0,dep:[0],u:1,i:1,day:2,
+   hint:"You can start this today, and four other tasks are stuck until it is done."},
+ {id:3,n:"Invite the GM, Head of HR and HR Advisor to present",w:"Half a day",lead:5,dep:[2],u:0,i:1,day:3,
    leadNote:"presenters need 5 days' notice",by:10},
  {id:4,n:"Confirm the department reps for the company tour",w:"Half a day",lead:3,dep:[2],u:0,i:1,day:4,
    leadNote:"reps need 3 days' notice",by:12},
- {id:5,n:"Verify the 12 participant email addresses",w:"Half a day",lead:0,dep:[0],u:0,i:1,day:5},
- {id:6,n:"Finalise the agenda with confirmed speaker names",w:"Half a day",lead:0,dep:[3],u:1,i:1,day:6},
- {id:7,n:"Draft and send the participant email invitation",w:"One day",lead:0,dep:[1,5,6],u:1,i:1,day:8},
+ {id:5,n:"Verify the 12 participant email addresses",w:"Half a day",lead:0,dep:[0],u:0,i:1,day:5,
+   hint:"You could start this today, but nothing needs it until the invitation goes out."},
+ {id:6,n:"Finalise the agenda with confirmed speaker names",w:"Half a day",lead:0,dep:[3],u:0,i:1,day:6},
+ {id:7,n:"Draft and send the participant email invitation",w:"One day",lead:0,dep:[1,5,6],u:0,i:1,day:8},
  {id:8,n:"Collect the presentation files from each speaker",w:"Ongoing",lead:0,dep:[3],u:0,i:1,day:9},
- {id:9,n:"Close RSVPs and confirm the final head count",w:"Half a day",lead:0,dep:[7],u:1,i:1,day:10},
+ {id:9,n:"Confirm who is coming, and the final head count",w:"Half a day",lead:0,dep:[7],u:0,i:1,day:10},
  {id:10,n:"Book catering for the morning break and buffet lunch",w:"Half a day",lead:3,dep:[9],u:0,i:1,day:11,
    leadNote:"supplier needs 3 days' notice",by:12},
- {id:11,n:"Test the room, the projector and every presentation file",w:"Half a day",lead:0,dep:[8],u:1,i:1,day:14}
+ {id:11,n:"Test the room, the projector and every presentation file",w:"Half a day",lead:0,dep:[8],u:0,i:1,day:14}
 ];
 
 const DISTRACTORS=[
@@ -432,8 +464,9 @@ function rows3(){
     let opts='<option value="">Choose what it waits on…</option><option value="0">Nothing &mdash; it can start now</option>';
     TASKS.filter(x=>x.id!==t.id).forEach(x=>{opts+='<option value="'+x.id+'">'+x.n+'</option>';});
     r.innerHTML=
-      '<div><span class="tname">'+t.n+'</span><span class="tmeta">Takes: '+t.w+
-      (t.lead?' &middot; <span class="lead">lead time: '+t.leadNote+'</span>':'')+'</span></div>'+
+      '<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">Takes: '+t.w+
+      (t.lead?' &middot; <span class="lead">lead time: '+t.leadNote+'</span>':'')+'</span>'+
+      (t.hint?'<span class="hint">'+t.hint+'</span>':'')+'</div>'+
       '<div><select aria-label="What it waits on">'+opts+'</select></div>'+
       '<div><div class="toggles">'+
         '<button class="tg" data-k="u" type="button" aria-pressed="false">URGENT</button>'+
@@ -473,10 +506,13 @@ document.getElementById("check3").onclick=()=>{
     r.classList.add(depOK&&boxOK?"right":"wrong");
     let old=r.querySelector(".fb"); if(old)old.remove();
     const f=document.createElement("div"); f.className="fb";
-    const depName=t.dep[0]===0?"nothing — it can start now":byId(t.dep[0]).n;
+    const depName=t.dep[0]===0?"nothing — it can start today":("task "+t.dep[0]+", "+byId(t.dep[0]).n);
     let msg="<b>Waits on:</b> "+depName;
     if(t.dep.length>1)msg+=" <i>(it actually waits on "+t.dep.length+" things — any of them is a fair answer)</i>";
-    msg+=" &nbsp;·&nbsp; <b>Box:</b> "+boxOf(t.u,t.i);
+    msg+=" &nbsp;·&nbsp; <b>Box:</b> "+boxOf(t.u,t.i)+" — "+
+      (t.u ? "you can start it today and it cannot wait"
+           : (t.dep[0]===0 ? "nothing blocks it, but nothing needs it yet either"
+                           : "it is still waiting on task "+t.dep[0]+", so it is not urgent today"));
     if(t.lead)msg+=" &nbsp;·&nbsp; <b>Lead time:</b> "+t.leadNote+", so it must be done by day "+t.by+".";
     f.innerHTML=msg; r.appendChild(f);
     S.dep[t.id]=t.dep[0]; S.u[t.id]=t.u; S.i[t.id]=t.i;
@@ -493,8 +529,8 @@ function rows4(){
     const r=document.createElement("div"); r.className="trow s4"; r.dataset.id=t.id;
     let o='<option value="">Day…</option>';
     for(let d=1;d<=15;d++)o+='<option value="'+d+'">Day '+d+'</option>';
-    const dep=t.dep[0]===0?"starts on its own":"after: "+byId(t.dep[0]).n;
-    r.innerHTML='<div><span class="tname">'+t.n+'</span><span class="tmeta">'+dep+
+    const dep=t.dep[0]===0?"starts on its own":"after task "+t.dep[0]+": "+byId(t.dep[0]).n;
+    r.innerHTML='<div><span class="tname"><span class="num">'+t.id+'</span>'+t.n+'</span><span class="tmeta">'+dep+
       (t.lead?' &middot; <span class="lead">by day '+t.by+'</span>':'')+'</span></div>'+
       '<div><select aria-label="Day for '+t.n.replace(/"/g,'')+'">'+o+'</select></div>';
     const s=r.querySelector("select");
@@ -558,15 +594,16 @@ document.getElementById("model4").onclick=()=>{
 function sum(){
   const t=document.getElementById("sum");
   const rows=TASKS.slice().sort((a,b)=>(S.day[a.id]||99)-(S.day[b.id]||99));
-  let h='<tr><th>Day</th><th>Task</th><th>Waits on</th><th>Box</th><th>Lead time</th></tr>';
+  let h='<tr><th>Day</th><th>#</th><th>Task</th><th>Waits on</th><th>Box</th><th>Lead time</th></tr>';
   rows.forEach(x=>{
     const d=S.day[x.id]?"Day "+S.day[x.id]:"&mdash;";
-    const dp=(S.dep[x.id]||x.dep[0])===0?"Nothing":byId(S.dep[x.id]||x.dep[0]).n;
-    h+='<tr><td class="d">'+d+'</td><td>'+x.n+'</td><td>'+dp+'</td><td class="d">'+
+    const dk=S.dep[x.id]!==undefined?S.dep[x.id]:x.dep[0];
+    const dp=dk===0?"Nothing":("Task "+dk);
+    h+='<tr><td class="d">'+d+'</td><td class="d">'+x.id+'</td><td>'+x.n+'</td><td>'+dp+'</td><td class="d">'+
        boxOf(S.u[x.id]!==undefined?S.u[x.id]:x.u,S.i[x.id]!==undefined?S.i[x.id]:x.i)+
        '</td><td>'+(x.lead?x.leadNote:"&mdash;")+'</td></tr>';
   });
-  h+='<tr><td class="d">Day 15</td><td colspan="4"><b>The induction runs.</b></td></tr>';
+  h+='<tr><td class="d">Day 15</td><td colspan="5"><b>The induction runs.</b></td></tr>';
   t.innerHTML=h;
 }
 const SM_A=["4:00 pm on day 1","12:00 noon on day 1","the end of day 1"];
