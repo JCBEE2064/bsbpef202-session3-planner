@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Induction Planner — BSBPEF202 Session 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F7F6F3; --panel:#FFFFFF; --ink:#16293D; --ink-soft:#54646F;
+  --rule:#DFDBD2; --rule-soft:#EDEAE3; --sand:#D6CBAE; --sand-wash:#F3EFE4;
+  --accent:#35657F; --accent-wash:#E9F0F4;
+  --ok:#2F6B4F; --ok-wash:#E8F0EB; --bad:#B0442A; --bad-wash:#F8EDE9;
+  --warn:#8A6A1F; --warn-wash:#F6F0DE;
+  --on-accent:#FFFFFF;
+  --shadow:0 1px 2px rgba(22,41,61,.06),0 6px 18px rgba(22,41,61,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0E1720; --panel:#16222E; --ink:#E8EDF2; --ink-soft:#9DAEBB;
+  --rule:#2A3A48; --rule-soft:#213040; --sand:#8A7F63; --sand-wash:#1E2A33;
+  --accent:#7FB2CE; --accent-wash:#1A2A34;
+  --ok:#79BE99; --ok-wash:#172A21; --bad:#E8896C; --bad-wash:#301E18;
+  --warn:#D9BC6A; --warn-wash:#2A2415;
+  --on-accent:#0E1720;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}}
+:root[data-theme="dark"]{
+  --paper:#0E1720; --panel:#16222E; --ink:#E8EDF2; --ink-soft:#9DAEBB;
+  --rule:#2A3A48; --rule-soft:#213040; --sand:#8A7F63; --sand-wash:#1E2A33;
+  --accent:#7FB2CE; --accent-wash:#1A2A34;
+  --ok:#79BE99; --ok-wash:#172A21; --bad:#E8896C; --bad-wash:#301E18;
+  --warn:#D9BC6A; --warn-wash:#2A2415;
+  --on-accent:#0E1720;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 20px 80px}
+h1,h2,h3{font-family:Newsreader,Georgia,serif;font-weight:600;letter-spacing:-.01em;text-wrap:balance;margin:0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+/* ---- header + rail ---- */
+header.top{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px}
+.kicker{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+header.top h1{font-size:clamp(1.5rem,4vw,2rem)}
+.rail{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.rail button{
+  flex:1 1 0;min-width:112px;background:var(--panel);border:1px solid var(--rule);
+  border-radius:2px;padding:8px 10px;text-align:left;cursor:pointer;color:var(--ink-soft);
+  font-family:inherit;font-size:.78rem;line-height:1.3;transition:.15s
+}
+.rail button .n{font-family:"IBM Plex Mono",monospace;font-size:.66rem;display:block;letter-spacing:.1em}
+.rail button[aria-current="step"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.rail button.done{border-color:var(--ok);color:var(--ink)}
+.rail button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---- screens ---- */
+.screen{display:none}
+.screen.on{display:block}
+.lede{max-width:66ch;color:var(--ink-soft);margin:0 0 18px}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:3px;box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
+h2.sh{font-size:1.5rem;margin:0 0 6px}
+
+/* ---- agenda ---- */
+.agenda{border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:var(--panel)}
+.arow{display:grid;grid-template-columns:78px 1fr auto;gap:12px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--rule-soft);cursor:pointer;width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;font:inherit;color:inherit}
+.arow:last-of-type{border-bottom:0}
+.arow:hover,.arow:focus-visible{background:var(--accent-wash);outline:none}
+.arow .tm{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.arow .who{font-size:.78rem;color:var(--ink-soft)}
+.needs{padding:0 14px;max-height:0;overflow:hidden;transition:max-height .2s ease,padding .2s ease;background:var(--accent-wash);border-bottom:1px solid var(--rule-soft)}
+.needs.open{max-height:120px;padding:11px 14px}
+.needs p{margin:0;font-size:.87rem}
+.needs .lbl{font-family:"IBM Plex Mono",monospace;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:3px;font-weight:600}
+.standing{margin-top:12px;padding:11px 14px;background:var(--sand-wash);border:1px solid var(--rule);border-radius:2px;font-size:.87rem}
+
+/* ---- pick list ---- */
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+.pick{
+  display:flex;gap:10px;align-items:flex-start;padding:11px 13px;background:var(--panel);
+  border:1px solid var(--rule);border-radius:2px;cursor:pointer;transition:.12s
+}
+.pick:hover{border-color:var(--accent)}
+.pick input{margin:3px 0 0;accent-color:var(--accent);width:16px;height:16px;flex:none;cursor:pointer}
+.pick .lab{font-size:.9rem}
+.pick.sel{background:var(--accent-wash);border-color:var(--accent)}
+.pick.right{background:var(--ok-wash);border-color:var(--ok)}
+.pick.wrong{background:var(--bad-wash);border-color:var(--bad)}
+.pick .why{display:block;font-size:.78rem;color:var(--ink-soft);margin-top:4px}
+
+/* ---- task rows (steps 3 & 4) ---- */
+.trow{display:grid;gap:10px;padding:12px 13px;border:1px solid var(--rule);border-radius:2px;background:var(--panel);margin-bottom:8px}
+.trow.s3{grid-template-columns:1fr 210px 150px}
+.trow.s4{grid-template-columns:1fr 118px}
+@media(max-width:780px){.trow.s3,.trow.s4{grid-template-columns:1fr}}
+.tname{font-size:.9rem;font-weight:500}
+.tmeta{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--ink-soft);display:block;margin-top:3px}
+.tmeta .lead{color:var(--warn);font-weight:600}
+select{
+  width:100%;font:inherit;font-size:.83rem;padding:6px 8px;border:1px solid var(--rule);
+  border-radius:2px;background:var(--panel);color:var(--ink)
+}
+select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.toggles{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tg{
+  font-family:"IBM Plex Mono",monospace;font-size:.68rem;padding:5px 9px;border:1px solid var(--rule);
+  border-radius:2px;background:var(--panel);color:var(--ink-soft);cursor:pointer;font-weight:600
+}
+.tg[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tg:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.boxname{font-family:"IBM Plex Mono",monospace;font-size:.7rem;margin-top:5px;display:block;color:var(--ink-soft)}
+.boxname b{color:var(--accent)}
+.trow.right{border-color:var(--ok);background:var(--ok-wash)}
+.trow.wrong{border-color:var(--bad);background:var(--bad-wash)}
+.fb{grid-column:1/-1;font-size:.8rem;color:var(--ink-soft);border-top:1px dashed var(--rule);padding-top:7px;margin-top:2px}
+.fb b{color:var(--ink)}
+
+/* ---- calendar ---- */
+.calwrap{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+@media(max-width:860px){.calwrap{grid-template-columns:1fr}}
+.cal{border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:var(--panel);position:sticky;top:14px}
+.cal .cd{display:grid;grid-template-columns:56px 1fr;gap:0;border-bottom:1px solid var(--rule-soft);min-height:30px;align-items:center}
+.cal .cd:last-child{border-bottom:0}
+.cal .dn{font-family:"IBM Plex Mono",monospace;font-size:.7rem;color:var(--ink-soft);padding:5px 8px;border-right:1px solid var(--rule-soft);align-self:stretch;display:flex;align-items:center}
+.cal .dt{padding:4px 8px;font-size:.76rem;display:flex;flex-direction:column;gap:2px}
+.cal .chip{background:var(--accent-wash);border-left:2px solid var(--accent);padding:2px 6px;border-radius:1px}
+.cal .cd.ind{background:var(--sand-wash)}
+.cal .cd.ind .dt{font-weight:600}
+.cal .cd.clash .chip{background:var(--bad-wash);border-left-color:var(--bad)}
+.calhead{padding:8px 10px;background:var(--sand-wash);border-bottom:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+
+/* ---- alerts ---- */
+.alerts{display:flex;flex-direction:column;gap:7px;margin:14px 0}
+.alert{padding:10px 13px;border-radius:2px;font-size:.85rem;border-left:3px solid}
+.alert.bad{background:var(--bad-wash);border-color:var(--bad)}
+.alert.warn{background:var(--warn-wash);border-color:var(--warn)}
+.alert.good{background:var(--ok-wash);border-color:var(--ok)}
+.alert b{font-weight:600}
+
+/* ---- buttons ---- */
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+button.act{
+  font:inherit;font-weight:600;font-size:.9rem;padding:10px 18px;border-radius:2px;cursor:pointer;
+  background:var(--accent);color:var(--on-accent);border:1px solid var(--accent)
+}
+button.act.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+button.act:disabled{opacity:.4;cursor:not-allowed}
+button.act:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.count{font-size:.82rem;color:var(--ink-soft)}
+
+/* ---- reveal ---- */
+.reveal{display:none;margin-top:16px;border:1px solid var(--ink);border-radius:3px;padding:16px 18px;background:var(--panel)}
+.reveal.on{display:block}
+.reveal h3{font-size:1.15rem;margin-bottom:8px}
+.reveal p{margin:0 0 10px;font-size:.9rem}
+.reveal ul{margin:0;padding-left:18px;font-size:.88rem;display:flex;flex-direction:column;gap:5px;color:var(--ink-soft)}
+.reveal ul b{color:var(--ink)}
+
+/* ---- smart ---- */
+.smart{background:var(--sand-wash);border:1px solid var(--rule);border-radius:2px;padding:16px 18px;font-size:1rem;line-height:2.1}
+.smart select{display:inline-block;width:auto;max-width:100%;font-size:.9rem;background:var(--panel)}
+.smartout{margin-top:14px;padding:14px 16px;background:var(--panel);border:1px solid var(--ink);border-radius:2px;font-family:Newsreader,Georgia,serif;font-size:1.06rem}
+
+/* ---- summary ---- */
+table.sum{width:100%;border-collapse:collapse;font-size:.85rem}
+table.sum th,table.sum td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+table.sum th{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+table.sum td.d{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tblscroll{overflow-x:auto}
+
+footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);font-size:.78rem;color:var(--ink-soft);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+
+@media print{
+  .rail,.bar,footer.foot,.screen:not(.on){display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="kicker">BSBPEF202 Plan and apply time management &middot; Session 3</p>
+  <h1>Induction Planner</h1>
+  <nav class="rail" id="rail" aria-label="Steps"></nav>
+</header>
+
+<!-- ============ 1 ============ -->
+<section class="screen" id="s1">
+  <h2 class="sh">The induction day</h2>
+  <p class="lede">This is the day you are preparing for. It runs on working day 15. Click any line to see what it needs organised in advance.</p>
+  <div class="agenda" id="agenda"></div>
+  <div class="standing"><b>Every line also needs one thing:</b> a room with a projector and screen. Four people are presenting from slides.</div>
+  <div class="bar"><button class="act" data-go="2">Next: choose the tasks</button></div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="screen" id="s2">
+  <h2 class="sh">Tick the tasks that belong on the list</h2>
+  <p class="lede">Here is everything on the Administration team's desk this fortnight. Tick only the tasks the induction day actually needs. Some are real work that belongs to a different job.</p>
+  <p class="kicker" style="color:var(--accent)">Technique &middot; Record &mdash; the to-do list</p>
+  <div class="picks" id="picks"></div>
+  <div class="bar">
+    <button class="act" id="check2">Check my list</button>
+    <span class="count" id="count2"></span>
+  </div>
+  <div class="reveal" id="rev2">
+    <h3>The eleven that belong</h3>
+    <p>Every task above traces back to a line on the agenda. If nothing on the day depends on it, it is not part of this job.</p>
+    <ul>
+      <li><b>Scope is decided by the agenda</b>, not by how useful a task feels. The staff handbook and the six-month reviews are real work &mdash; just not this work.</li>
+      <li><b>The feedback report</b> happens after the induction, so it cannot be prepared before it.</li>
+      <li>Remember the Eisenhower Matrix from Session 2? The tasks you left unticked are the <b>Drop</b> box.</li>
+    </ul>
+    <div class="bar"><button class="act" data-go="3">Next: dependency and priority</button></div>
+  </div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="screen" id="s3">
+  <h2 class="sh">What does each task wait on, and how urgent is it?</h2>
+  <p class="lede">You are standing on <b>day 1</b>. Pick what each task must wait for, then decide whether it is urgent and whether it is important. The matrix box fills in by itself.</p>
+  <p class="kicker" style="color:var(--accent)">Technique &middot; Prioritise &mdash; the Eisenhower Matrix</p>
+  <div id="rows3"></div>
+  <div class="bar">
+    <button class="act" id="check3">Check my answers</button>
+    <span class="count" id="count3"></span>
+  </div>
+  <div class="reveal" id="rev3">
+    <h3>Why these dependencies</h3>
+    <ul>
+      <li><b>The agenda comes before the presenters.</b> People should be invited to an approved programme, not a draft.</li>
+      <li><b>The presenters come before the final agenda.</b> You cannot print names you have not confirmed.</li>
+      <li><b>The invitation waits on three things</b> &mdash; the room, the finalised agenda and the checked email list. Any of those is a fair answer.</li>
+      <li><b>Nothing lands in Delegate or Drop.</b> That is what step 2 was: the tasks you dropped were the Drop box.</li>
+      <li>Watch the <span class="mono" style="color:var(--warn)">lead time</span> notes. That is time <em>somebody else</em> needs, and it is not the same as how long the task takes you.</li>
+    </ul>
+    <div class="bar"><button class="act" data-go="4">Next: put them on days</button></div>
+  </div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="screen" id="s4">
+  <h2 class="sh">Put every task on a day</h2>
+  <p class="lede">Day 1 is the day the job is handed to you. Day 15 is the induction. The calendar updates as you choose, and will tell you when something is out of order.</p>
+  <p class="kicker" style="color:var(--accent)">Technique &middot; Schedule &mdash; time blocking</p>
+  <div class="calwrap">
+    <div>
+      <div id="rows4"></div>
+      <div class="bar">
+        <button class="act" id="check4">Check my plan</button>
+        <button class="act ghost" id="model4">Show one workable answer</button>
+      </div>
+      <div class="alerts" id="alerts4"></div>
+    </div>
+    <div class="cal" id="cal"><div class="calhead">Working days</div></div>
+  </div>
+  <div class="reveal" id="rev4">
+    <h3>One workable answer</h3>
+    <p>There is more than one right plan. Any order that respects the dependencies and the lead times works.</p>
+    <ul>
+      <li><b>Days 7, 12 and 13 are empty on purpose.</b> Spare time is not wasted time &mdash; it is what absorbs the thing that goes wrong.</li>
+      <li><b>Catering is the trap.</b> Nothing waits on it, so it feels safe to leave late. But the supplier needs three days, so day 12 is the last possible day.</li>
+      <li><b>Focus &mdash; Pomodoro.</b> When you block 9:00 to 9:30 on day 1 for the room, that block is one 25-minute round. One task, timer on, email closed.</li>
+    </ul>
+    <div class="bar"><button class="act" data-go="5">Finish: write it as a SMART goal</button></div>
+  </div>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="screen" id="s5">
+  <h2 class="sh">Your plan</h2>
+  <p class="lede">This is what you built. Write your day 1 task as a SMART goal, the way you did in Session 1, then print or save the page.</p>
+  <div class="card">
+    <p class="kicker">Step 5 &middot; Review and adjust</p>
+    <div class="tblscroll"><table class="sum" id="sum"></table></div>
+  </div>
+  <div class="card">
+    <p class="kicker">Back to Session 1 &middot; SMART</p>
+    <div class="smart" id="smart"></div>
+    <div class="smartout" id="smartout"></div>
+  </div>
+  <div class="bar">
+    <button class="act" onclick="window.print()">Print or save as PDF</button>
+    <button class="act ghost" id="restart">Start again</button>
+  </div>
+</section>
+
+<footer class="foot">
+  <span>Solid RTO &middot; Administration team &middot; No sign-in, no personal information collected.</span>
+  <span class="mono">Session 3 &middot; v1</span>
+</footer>
+</div>
+
+<script>
+"use strict";
+
+const AGENDA=[
+ ["9:00","Registration and opening","Team Leader","A confirmed list of the 12 participants, and their name badges ready on the desk."],
+ ["9:10","Executive welcome","General Manager","The GM confirmed for the date, and their slides collected before the day."],
+ ["9:25","Organisation structure","Head of HR","The Head of HR confirmed, and the org chart slides collected."],
+ ["9:45","Essential workplace policies","HR Advisor","The HR Advisor confirmed, and their slides collected."],
+ ["10:10","Morning break","","Catering ordered to a confirmed head count."],
+ ["10:20","Guided company tour","Admin Officer and department reps","Department representatives confirmed and told when to expect the group."],
+ ["10:55","First-week onboarding and support","HR Advisor","Nothing extra. Confirming the HR Advisor covers this too."],
+ ["11:05","Questions and next steps","Team Leader and HR","Nothing extra. The people are already in the room."],
+ ["11:15","Feedback and close","Team Leader","The feedback survey ready to display."],
+ ["11:20","Buffet lunch","Catering","Catering ordered to a confirmed head count. The supplier needs notice."]
+];
+
+// id, name, work, lead(days somebody else needs), deps(acceptable), urgent, important, modelDay, leadNote, deadlineDay
+const TASKS=[
+ {id:1,n:"Book Training Room A, with a projector and screen",w:"Half a day",lead:0,dep:[0],u:1,i:1,day:1},
+ {id:2,n:"Get the induction agenda approved by HR",w:"One day",lead:0,dep:[0],u:1,i:1,day:2},
+ {id:3,n:"Invite the GM, Head of HR and HR Advisor to present",w:"Half a day",lead:5,dep:[2],u:1,i:1,day:3,
+   leadNote:"presenters need 5 days' notice",by:10},
+ {id:4,n:"Confirm the department reps for the company tour",w:"Half a day",lead:3,dep:[2],u:0,i:1,day:4,
+   leadNote:"reps need 3 days' notice",by:12},
+ {id:5,n:"Verify the 12 participant email addresses",w:"Half a day",lead:0,dep:[0],u:0,i:1,day:5},
+ {id:6,n:"Finalise the agenda with confirmed speaker names",w:"Half a day",lead:0,dep:[3],u:1,i:1,day:6},
+ {id:7,n:"Draft and send the participant email invitation",w:"One day",lead:0,dep:[1,5,6],u:1,i:1,day:8},
+ {id:8,n:"Collect the presentation files from each speaker",w:"Ongoing",lead:0,dep:[3],u:0,i:1,day:9},
+ {id:9,n:"Close RSVPs and confirm the final head count",w:"Half a day",lead:0,dep:[7],u:1,i:1,day:10},
+ {id:10,n:"Book catering for the morning break and buffet lunch",w:"Half a day",lead:3,dep:[9],u:0,i:1,day:11,
+   leadNote:"supplier needs 3 days' notice",by:12},
+ {id:11,n:"Test the room, the projector and every presentation file",w:"Half a day",lead:0,dep:[8],u:1,i:1,day:14}
+];
+
+const DISTRACTORS=[
+ {id:101,n:"Update the staff handbook",why:"Real work, but nothing on the induction day depends on it."},
+ {id:102,n:"Write the induction feedback survey report",why:"This happens after the induction, so it cannot be done before it."},
+ {id:103,n:"Order new office chairs for the training room",why:"Not required by anything on the agenda."},
+ {id:104,n:"Arrange parking permits for the 12 new employees",why:"Not part of this day. Nothing on the agenda depends on it."},
+ {id:105,n:"Schedule the six-month performance reviews",why:"A different job, months away."}
+];
+
+const ORDER=[1,101,2,3,102,4,5,103,6,7,104,8,9,10,105,11];
+const byId=id=>TASKS.find(t=>t.id===id);
+
+let S={step:1,picked:[],dep:{},u:{},i:{},day:{},smart:{a:"",b:"",c:""}};
+try{const raw=localStorage.getItem("bsbpef202s3");if(raw)S=Object.assign(S,JSON.parse(raw));}catch(e){}
+function save(){try{localStorage.setItem("bsbpef202s3",JSON.stringify(S));}catch(e){}}
+
+/* ---------- rail ---------- */
+const LABELS=["The day","Choose tasks","Depends & priority","The calendar","Your plan"];
+function rail(){
+  const r=document.getElementById("rail"); r.innerHTML="";
+  LABELS.forEach((L,k)=>{
+    const b=document.createElement("button");
+    b.innerHTML='<span class="n">STEP '+(k+1)+'</span>'+L;
+    if(S.step===k+1)b.setAttribute("aria-current","step");
+    if(S.step>k+1)b.className="done";
+    b.onclick=()=>go(k+1);
+    r.appendChild(b);
+  });
+}
+function go(n){
+  S.step=n; save(); rail();
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  document.getElementById("s"+n).classList.add("on");
+  if(n===3)rows3(); if(n===4){rows4();cal();} if(n===5){sum();smart();}
+  window.scrollTo({top:0,behavior:"instant"});
+}
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(+b.dataset.go));
+
+/* ---------- 1 agenda ---------- */
+(function(){
+  const w=document.getElementById("agenda");
+  AGENDA.forEach((a,k)=>{
+    const b=document.createElement("button");
+    b.className="arow"; b.type="button"; b.setAttribute("aria-expanded","false");
+    b.innerHTML='<span class="tm">'+a[0]+'</span><span>'+a[1]+(a[2]?'<br><span class="who">'+a[2]+'</span>':'')+'</span><span class="who">what it needs &#9662;</span>';
+    const d=document.createElement("div");
+    d.className="needs"; d.innerHTML='<p><span class="lbl">Organised in advance</span>'+a[3]+'</p>';
+    b.onclick=()=>{const o=d.classList.toggle("open");b.setAttribute("aria-expanded",o?"true":"false");};
+    w.appendChild(b); w.appendChild(d);
+  });
+})();
+
+/* ---------- 2 picks ---------- */
+(function(){
+  const w=document.getElementById("picks");
+  ORDER.forEach(id=>{
+    const real=id<100, t=real?byId(id):DISTRACTORS.find(d=>d.id===id);
+    const l=document.createElement("label"); l.className="pick"; l.dataset.id=id;
+    l.innerHTML='<input type="checkbox"><span class="lab">'+t.n+'</span>';
+    const cb=l.querySelector("input");
+    cb.checked=S.picked.indexOf(id)>-1; if(cb.checked)l.classList.add("sel");
+    cb.onchange=()=>{
+      const k=S.picked.indexOf(id);
+      if(cb.checked&&k<0)S.picked.push(id); if(!cb.checked&&k>-1)S.picked.splice(k,1);
+      l.classList.toggle("sel",cb.checked); save(); c2();
+    };
+    w.appendChild(l);
+  });
+  c2();
+})();
+function c2(){
+  document.getElementById("count2").textContent=S.picked.length+" of 16 ticked";
+}
+document.getElementById("check2").onclick=()=>{
+  document.querySelectorAll("#picks .pick").forEach(l=>{
+    const id=+l.dataset.id, real=id<100, on=l.querySelector("input").checked;
+    l.classList.remove("sel","right","wrong");
+    l.classList.add(real===on?"right":"wrong");
+    if(!l.querySelector(".why")){
+      const s=document.createElement("span"); s.className="why";
+      s.textContent=real?"Belongs. Traces back to a line on the agenda.":DISTRACTORS.find(d=>d.id===id).why;
+      l.querySelector(".lab").appendChild(s);
+    }
+  });
+  S.picked=TASKS.map(t=>t.id); save();
+  document.getElementById("rev2").classList.add("on");
+  document.getElementById("rev2").scrollIntoView({behavior:"smooth",block:"nearest"});
+};
+
+/* ---------- 3 ---------- */
+function boxOf(u,i){return u&&i?"Do now":(!u&&i?"Schedule":(u&&!i?"Delegate":"Drop"));}
+function rows3(){
+  const w=document.getElementById("rows3"); w.innerHTML="";
+  TASKS.forEach(t=>{
+    const r=document.createElement("div"); r.className="trow s3"; r.dataset.id=t.id;
+    let opts='<option value="">Choose what it waits on…</option><option value="0">Nothing &mdash; it can start now</option>';
+    TASKS.filter(x=>x.id!==t.id).forEach(x=>{opts+='<option value="'+x.id+'">'+x.n+'</option>';});
+    r.innerHTML=
+      '<div><span class="tname">'+t.n+'</span><span class="tmeta">Takes: '+t.w+
+      (t.lead?' &middot; <span class="lead">lead time: '+t.leadNote+'</span>':'')+'</span></div>'+
+      '<div><select aria-label="What it waits on">'+opts+'</select></div>'+
+      '<div><div class="toggles">'+
+        '<button class="tg" data-k="u" type="button" aria-pressed="false">URGENT</button>'+
+        '<button class="tg" data-k="i" type="button" aria-pressed="false">IMPORTANT</button>'+
+      '</div><span class="boxname"></span></div>';
+    const sel=r.querySelector("select");
+    if(S.dep[t.id]!==undefined)sel.value=String(S.dep[t.id]);
+    sel.onchange=()=>{S.dep[t.id]=+sel.value;save();};
+    r.querySelectorAll(".tg").forEach(b=>{
+      const k=b.dataset.k, st=k==="u"?S.u:S.i;
+      if(st[t.id])b.setAttribute("aria-pressed","true");
+      b.onclick=()=>{
+        const on=b.getAttribute("aria-pressed")==="true";
+        b.setAttribute("aria-pressed",on?"false":"true");
+        (k==="u"?S.u:S.i)[t.id]=on?0:1; save(); bn(r,t.id);
+      };
+    });
+    w.appendChild(r); bn(r,t.id);
+  });
+  c3();
+}
+function bn(r,id){
+  const el=r.querySelector(".boxname");
+  if(S.u[id]===undefined&&S.i[id]===undefined){el.innerHTML="";return;}
+  el.innerHTML="Box: <b>"+boxOf(S.u[id],S.i[id])+"</b>";
+}
+function c3(){
+  const done=TASKS.filter(t=>S.dep[t.id]!==undefined).length;
+  document.getElementById("count3").textContent=done+" of "+TASKS.length+" have a dependency chosen";
+}
+document.getElementById("check3").onclick=()=>{
+  document.querySelectorAll("#rows3 .trow").forEach(r=>{
+    const t=byId(+r.dataset.id);
+    const depOK=t.dep.indexOf(S.dep[t.id])>-1;
+    const boxOK=(S.u[t.id]?1:0)===t.u&&(S.i[t.id]?1:0)===t.i;
+    r.classList.remove("right","wrong");
+    r.classList.add(depOK&&boxOK?"right":"wrong");
+    let old=r.querySelector(".fb"); if(old)old.remove();
+    const f=document.createElement("div"); f.className="fb";
+    const depName=t.dep[0]===0?"nothing — it can start now":byId(t.dep[0]).n;
+    let msg="<b>Waits on:</b> "+depName;
+    if(t.dep.length>1)msg+=" <i>(it actually waits on "+t.dep.length+" things — any of them is a fair answer)</i>";
+    msg+=" &nbsp;·&nbsp; <b>Box:</b> "+boxOf(t.u,t.i);
+    if(t.lead)msg+=" &nbsp;·&nbsp; <b>Lead time:</b> "+t.leadNote+", so it must be done by day "+t.by+".";
+    f.innerHTML=msg; r.appendChild(f);
+    S.dep[t.id]=t.dep[0]; S.u[t.id]=t.u; S.i[t.id]=t.i;
+  });
+  save();
+  document.getElementById("rev3").classList.add("on");
+  document.getElementById("rev3").scrollIntoView({behavior:"smooth",block:"nearest"});
+};
+
+/* ---------- 4 ---------- */
+function rows4(){
+  const w=document.getElementById("rows4"); w.innerHTML="";
+  TASKS.forEach(t=>{
+    const r=document.createElement("div"); r.className="trow s4"; r.dataset.id=t.id;
+    let o='<option value="">Day…</option>';
+    for(let d=1;d<=15;d++)o+='<option value="'+d+'">Day '+d+'</option>';
+    const dep=t.dep[0]===0?"starts on its own":"after: "+byId(t.dep[0]).n;
+    r.innerHTML='<div><span class="tname">'+t.n+'</span><span class="tmeta">'+dep+
+      (t.lead?' &middot; <span class="lead">by day '+t.by+'</span>':'')+'</span></div>'+
+      '<div><select aria-label="Day for '+t.n.replace(/"/g,'')+'">'+o+'</select></div>';
+    const s=r.querySelector("select");
+    if(S.day[t.id])s.value=String(S.day[t.id]);
+    s.onchange=()=>{S.day[t.id]=+s.value;save();cal();};
+    w.appendChild(r);
+  });
+}
+function cal(){
+  const c=document.getElementById("cal");
+  c.innerHTML='<div class="calhead">Working days</div>';
+  const bad=problems().map(p=>p.id);
+  for(let d=1;d<=15;d++){
+    const row=document.createElement("div");
+    row.className="cd"+(d===15?" ind":"");
+    const here=TASKS.filter(t=>S.day[t.id]===d);
+    if(here.some(t=>bad.indexOf(t.id)>-1))row.classList.add("clash");
+    let chips=here.map(t=>'<span class="chip">'+t.n+'</span>').join("");
+    if(d===15)chips='<span>The induction runs</span>'+chips;
+    row.innerHTML='<span class="dn">Day '+d+'</span><span class="dt">'+chips+'</span>';
+    c.appendChild(row);
+  }
+}
+function problems(){
+  const p=[];
+  TASKS.forEach(t=>{
+    const d=S.day[t.id]; if(!d)return;
+    if(d===15)p.push({id:t.id,msg:"<b>"+t.n+"</b> is on day 15. Nothing belongs there except the induction itself."});
+    t.dep.filter(x=>x>0).forEach(dx=>{
+      const dd=S.day[dx]; if(!dd)return;
+      if(d<dd)p.push({id:t.id,msg:"<b>"+t.n+"</b> is on day "+d+", but it waits on <b>"+byId(dx).n+"</b> which is on day "+dd+"."});
+    });
+    if(t.by&&d>t.by)p.push({id:t.id,msg:"<b>"+t.n+"</b> is on day "+d+", too late. The "+t.leadNote+", so it must be done by day "+t.by+"."});
+  });
+  return p;
+}
+document.getElementById("check4").onclick=()=>{
+  const a=document.getElementById("alerts4"); a.innerHTML="";
+  const un=TASKS.filter(t=>!S.day[t.id]);
+  const ps=problems();
+  if(un.length){const e=document.createElement("div");e.className="alert warn";
+    e.innerHTML="<b>"+un.length+" task"+(un.length>1?"s have":" has")+" no day yet.</b> Every task needs one.";a.appendChild(e);}
+  ps.forEach(p=>{const e=document.createElement("div");e.className="alert bad";e.innerHTML=p.msg;a.appendChild(e);});
+  if(!un.length&&!ps.length){
+    const e=document.createElement("div");e.className="alert good";
+    const used=new Set(TASKS.map(t=>S.day[t.id]));let spare=0;
+    for(let d=1;d<=14;d++)if(!used.has(d))spare++;
+    e.innerHTML="<b>This plan works.</b> Every dependency is in order, every lead time is met, and you have "+spare+" spare day"+(spare===1?"":"s")+" before the induction.";
+    a.appendChild(e);
+  }
+  cal();
+};
+document.getElementById("model4").onclick=()=>{
+  TASKS.forEach(t=>{S.day[t.id]=t.day;});save();rows4();cal();
+  document.getElementById("alerts4").innerHTML="";
+  document.getElementById("rev4").classList.add("on");
+  document.getElementById("rev4").scrollIntoView({behavior:"smooth",block:"nearest"});
+};
+
+/* ---------- 5 ---------- */
+function sum(){
+  const t=document.getElementById("sum");
+  const rows=TASKS.slice().sort((a,b)=>(S.day[a.id]||99)-(S.day[b.id]||99));
+  let h='<tr><th>Day</th><th>Task</th><th>Waits on</th><th>Box</th><th>Lead time</th></tr>';
+  rows.forEach(x=>{
+    const d=S.day[x.id]?"Day "+S.day[x.id]:"&mdash;";
+    const dp=(S.dep[x.id]||x.dep[0])===0?"Nothing":byId(S.dep[x.id]||x.dep[0]).n;
+    h+='<tr><td class="d">'+d+'</td><td>'+x.n+'</td><td>'+dp+'</td><td class="d">'+
+       boxOf(S.u[x.id]!==undefined?S.u[x.id]:x.u,S.i[x.id]!==undefined?S.i[x.id]:x.i)+
+       '</td><td>'+(x.lead?x.leadNote:"&mdash;")+'</td></tr>';
+  });
+  h+='<tr><td class="d">Day 15</td><td colspan="4"><b>The induction runs.</b></td></tr>';
+  t.innerHTML=h;
+}
+const SM_A=["4:00 pm on day 1","12:00 noon on day 1","the end of day 1"];
+const SM_B=["book Training Room A with a projector and screen, checked against the room checklist",
+            "get the induction agenda approved by HR",
+            "verify all 12 participant email addresses against the HR record"];
+const SM_C=["emailing the booking details to the Administration Team Leader",
+            "emailing the approved agenda to the Administration Team Leader",
+            "confirming the checked list with the HR Advisor"];
+function smart(){
+  const w=document.getElementById("smart");
+  const mk=(k,arr)=>{let o='<option value="">…</option>';arr.forEach((v,j)=>{o+='<option value="'+j+'">'+v+'</option>';});
+    return '<select data-k="'+k+'" aria-label="'+k+'">'+o+'</select>';};
+  w.innerHTML='By '+mk("a",SM_A)+', I will '+mk("b",SM_B)+' and confirm it by '+mk("c",SM_C)+
+    ', so that the induction invitation can go out on time with the correct venue.';
+  w.querySelectorAll("select").forEach(s=>{
+    const k=s.dataset.k; if(S.smart[k]!=="")s.value=S.smart[k];
+    s.onchange=()=>{S.smart[k]=s.value;save();smartOut();};
+  });
+  smartOut();
+}
+function smartOut(){
+  const o=document.getElementById("smartout");
+  const {a,b,c}=S.smart;
+  if(a===""||b===""||c===""){o.innerHTML='<span style="color:var(--ink-soft);font-family:\'Public Sans\',sans-serif;font-size:.9rem">Choose all three to see your goal.</span>';return;}
+  o.textContent="By "+SM_A[a]+", I will "+SM_B[b]+" and confirm it by "+SM_C[c]+
+    ", so that the induction invitation can go out on time with the correct venue.";
+}
+document.getElementById("restart").onclick=()=>{
+  S={step:1,picked:[],dep:{},u:{},i:{},day:{},smart:{a:"",b:"",c:""}};save();location.reload();
+};
+
+rail(); go(S.step);
+</script>
+</body>
+</html>
