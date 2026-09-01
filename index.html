@@ -336,7 +336,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--rule);fo
 
 <footer class="foot">
   <span>Solid RTO &middot; Administration team &middot; No sign-in and no personal information collected. Your answers stay in this browser, so you can close the page and come back to them.</span>
-  <span class="mono">Session 3 &middot; build 8</span>
+  <span class="mono">Session 3 &middot; build 9</span>
 </footer>
 </div>
 
@@ -487,7 +487,7 @@ document.getElementById("check2").onclick=()=>{
       l.querySelector(".lab").appendChild(s);
     }
   });
-  S.picked=TASKS.map(t=>t.id); save();
+  save();
   document.getElementById("rev2").classList.add("on");
   document.getElementById("rev2").scrollIntoView({behavior:"smooth",block:"nearest"});
 };
@@ -557,7 +557,9 @@ document.getElementById("check3").onclick=()=>{
     if(t.lead)msg+=" &nbsp;·&nbsp; <b>Lead time:</b> "+t.leadNote+", so it must be done by day "+t.by+".";
     if(t.turn)msg+=" &nbsp;·&nbsp; <b>Waiting time:</b> "+t.turnNote+" &mdash; add "+t.turn+" day"+(t.turn>1?"s":"")+" before anything that depends on it can start.";
     f.innerHTML=msg; r.appendChild(f);
-    S.dep[t.id]=t.dep[0]; S.u[t.id]=t.u; S.i[t.id]=t.i;
+    // The learner's own answers are left alone. Overwriting them here made a
+    // second press of Check mark everything correct, and left the toggles
+    // showing one box while the feedback named another.
   });
   save();
   document.getElementById("rev3").classList.add("on");
@@ -647,11 +649,11 @@ function sum(){
   let h='<tr><th>Day</th><th>#</th><th>Task</th><th>Waits on</th><th>Box</th><th>Lead time</th></tr>';
   rows.forEach(x=>{
     const d=S.day[x.id]?"Day "+S.day[x.id]:"&mdash;";
-    const dk=S.dep[x.id]!==undefined?S.dep[x.id]:x.dep[0];
-    const dp=dk===0?"Nothing":("Task "+dk);
+    // the finished plan shows the checked answers, not a learner's first guess
+    const dp=x.dep[0]===0?"Nothing":("Task "+x.dep.join(", "));
+    const wait=x.lead?x.leadNote:(x.turn?x.turnNote:"&mdash;");
     h+='<tr><td class="d">'+d+'</td><td class="d">'+x.id+'</td><td>'+x.n+'</td><td>'+dp+'</td><td class="d">'+
-       boxOf(S.u[x.id]!==undefined?S.u[x.id]:x.u,S.i[x.id]!==undefined?S.i[x.id]:x.i)+
-       '</td><td>'+(x.lead?x.leadNote:"&mdash;")+'</td></tr>';
+       boxOf(x.u,x.i)+'</td><td>'+wait+'</td></tr>';
   });
   h+='<tr><td class="d">Day 15</td><td colspan="5"><b>The induction runs.</b></td></tr>';
   t.innerHTML=h;
